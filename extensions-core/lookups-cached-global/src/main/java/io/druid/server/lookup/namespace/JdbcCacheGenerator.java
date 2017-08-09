@@ -19,6 +19,11 @@
 
 package io.druid.server.lookup.namespace;
 
+import com.jayway.jsonpath.Configuration;
+import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.Option;
+import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
+import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.druid.common.utils.JodaUtils;
 import io.druid.java.util.common.Pair;
 import io.druid.java.util.common.StringUtils;
@@ -39,7 +44,9 @@ import javax.annotation.Nullable;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -52,6 +59,13 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
   private static final Logger LOG = new Logger(JdbcCacheGenerator.class);
   private final ConcurrentMap<CacheScheduler.EntryImpl<JdbcExtractionNamespace>, DBI> dbiCache =
       new ConcurrentHashMap<>();
+
+  // Avoid using defaultConfiguration, as this depends on json-smart which we are excluding.
+  private final Configuration jsonPathConfig = Configuration.builder()
+                                                            .jsonProvider(new JacksonJsonProvider())
+                                                            .mappingProvider(new JacksonMappingProvider())
+                                                            .options(EnumSet.of(Option.SUPPRESS_EXCEPTIONS))
+                                                            .build();
 
   @Override
   @Nullable
@@ -72,6 +86,7 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
     final String table = namespace.getTable();
     final String filter = namespace.getFilter();
     final String valueColumn = namespace.getValueColumn();
+    final String valueParser = namespace.getValueParser();
     final String keyColumn = namespace.getKeyColumn();
 
     LOG.debug("Updating %s", entryId);
@@ -94,7 +109,22 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
                           final StatementContext ctx
                       ) throws SQLException
                       {
-                        return new Pair<>(r.getString(keyColumn), r.getString(valueColumn));
+                        String value = r.getString(valueColumn);
+
+                        if (!Strings.isNullOrEmpty(value) &&
+                            !Strings.isNullOrEmpty(valueParser)) {
+
+                          value = JsonPath
+                              .using(jsonPathConfig)
+                              .parse(value)
+                              .read(valueParser);
+                        }
+
+                        return new Pair<>(
+                            r.getString(keyColumn),
+                            Strings.nullToEmpty(value)
+                        );
+
                       }
                     }
                 ).list();
@@ -105,7 +135,7 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
     if (lastDBUpdate != null) {
       newVersion = lastDBUpdate.toString();
     } else {
-      newVersion = StringUtils.format("%d", dbQueryStart);
+      newVersion = String.format("%d", dbQueryStart);
     }
     final CacheScheduler.VersionedCache versionedCache = scheduler.createVersionedCache(entryId, newVersion);
     try {
@@ -130,7 +160,7 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
   private String buildLookupQuery(String table, String filter, String keyColumn, String valueColumn)
   {
     if (Strings.isNullOrEmpty(filter)) {
-      return StringUtils.format(
+      return String.format(
           "SELECT %s, %s FROM %s",
           keyColumn,
           valueColumn,
@@ -138,7 +168,7 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
       );
     }
 
-    return StringUtils.format(
+    return String.format(
         "SELECT %s, %s FROM %s WHERE %s",
         keyColumn,
         valueColumn,
@@ -177,11 +207,11 @@ public final class JdbcCacheGenerator implements CacheGenerator<JdbcExtractionNa
     final Timestamp update = dbi.withHandle(
         new HandleCallback<Timestamp>()
         {
-
           @Override
           public Timestamp withHandle(Handle handle) throws Exception
           {
-            final String query = StringUtils.format(
+            final String query = String.format(
+                Locale.ENGLISH,
                 "SELECT MAX(%s) FROM %s",
                 tsColumn, table
             );
