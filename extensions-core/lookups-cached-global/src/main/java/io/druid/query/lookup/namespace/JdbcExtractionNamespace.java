@@ -46,6 +46,8 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
   @JsonProperty
   private final String valueColumn;
   @JsonProperty
+  private final String valueParser;
+  @JsonProperty
   private final String tsColumn;
   @JsonProperty
   private final String filter;
@@ -59,6 +61,7 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
       @NotNull @JsonProperty(value = "table", required = true) final String table,
       @NotNull @JsonProperty(value = "keyColumn", required = true) final String keyColumn,
       @NotNull @JsonProperty(value = "valueColumn", required = true) final String valueColumn,
+      @NotNull @JsonProperty(value = "valueParser", required = true) final String valueParser,
       @Nullable @JsonProperty(value = "tsColumn", required = false) final String tsColumn,
       @Nullable @JsonProperty(value = "filter", required = false) final String filter,
       @Min(0) @Nullable @JsonProperty(value = "pollPeriod", required = false) final Period pollPeriod
@@ -69,6 +72,7 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
     this.table = Preconditions.checkNotNull(table, "table");
     this.keyColumn = Preconditions.checkNotNull(keyColumn, "keyColumn");
     this.valueColumn = Preconditions.checkNotNull(valueColumn, "valueColumn");
+    this.valueParser = valueParser;
     this.tsColumn = tsColumn;
     this.filter = filter;
     this.pollPeriod = pollPeriod == null ? new Period(0L) : pollPeriod;
@@ -92,6 +96,11 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
   public String getValueColumn()
   {
     return valueColumn;
+  }
+
+  public String getValueParser()
+  {
+    return valueParser;
   }
 
   public String getFilter()
@@ -118,6 +127,7 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
            ", table='" + table + '\'' +
            ", keyColumn='" + keyColumn + '\'' +
            ", valueColumn='" + valueColumn + '\'' +
+           ", valueParser='" + valueParser + '\'' +
            ", tsColumn='" + tsColumn + '\'' +
            ", filter='" + filter + '\'' +
            ", pollPeriod=" + pollPeriod +
@@ -141,6 +151,7 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
            Objects.equals(filter, that.filter) &&
            Objects.equals(keyColumn, that.keyColumn) &&
            Objects.equals(valueColumn, that.valueColumn) &&
+           Objects.equals(valueParser, that.valueParser) &&
            Objects.equals(tsColumn, that.tsColumn) &&
            Objects.equals(pollPeriod, that.pollPeriod);
   }
@@ -154,6 +165,7 @@ public class JdbcExtractionNamespace implements ExtractionNamespace
         filter,
         keyColumn,
         valueColumn,
+        valueParser,
         tsColumn,
         pollPeriod
     );
