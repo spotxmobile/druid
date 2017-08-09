@@ -374,6 +374,7 @@ public class JdbcExtractionNamespaceTest
         tableName,
         keyName,
         valName,
+        null,
         tsColumn,
         null,
         new Period(0)
@@ -402,6 +403,7 @@ public class JdbcExtractionNamespaceTest
         tableName,
         keyName,
         valName,
+        null,
         tsColumn,
         filterColumn + "='1'",
         new Period(0)
@@ -457,6 +459,7 @@ public class JdbcExtractionNamespaceTest
         tableName,
         keyName,
         valName,
+        null,
         tsColumn,
         null,
         new Period(10)
