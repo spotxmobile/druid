@@ -27,7 +27,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.druid.concurrent.Execs;
-import io.druid.java.util.common.StringUtils;
 import io.druid.java.util.common.io.Closer;
 import io.druid.java.util.common.lifecycle.Lifecycle;
 import io.druid.java.util.common.logger.Logger;
@@ -125,7 +124,7 @@ public class JdbcExtractionNamespaceTest
             Assert.assertEquals(
                 0,
                 handle.createStatement(
-                    StringUtils.format(
+                    String.format(
                         "CREATE TABLE %s (%s TIMESTAMP, %s VARCHAR(64), %s VARCHAR(64), %s VARCHAR(64))",
                         tableName,
                         tsColumn_,
@@ -135,7 +134,7 @@ public class JdbcExtractionNamespaceTest
                     )
                 ).setQueryTimeout(1).execute()
             );
-            handle.createStatement(StringUtils.format("TRUNCATE TABLE %s", tableName)).setQueryTimeout(1).execute();
+            handle.createStatement(String.format("TRUNCATE TABLE %s", tableName)).setQueryTimeout(1).execute();
             handle.commit();
             closer.register(new Closeable()
             {
@@ -341,16 +340,16 @@ public class JdbcExtractionNamespaceTest
     final String query;
     if (tsColumn == null) {
       handle.createStatement(
-          StringUtils.format("DELETE FROM %s WHERE %s='%s'", tableName, keyName, key)
+          String.format("DELETE FROM %s WHERE %s='%s'", tableName, keyName, key)
       ).setQueryTimeout(1).execute();
-      query = StringUtils.format(
+      query = String.format(
           "INSERT INTO %s (%s, %s, %s) VALUES ('%s', '%s', '%s')",
           tableName,
           filterColumn, keyName, valName,
           filter, key, val
       );
     } else {
-      query = StringUtils.format(
+      query = String.format(
           "INSERT INTO %s (%s, %s, %s, %s) VALUES ('%s', '%s', '%s', '%s')",
           tableName,
           tsColumn, filterColumn, keyName, valName,

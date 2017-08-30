@@ -26,7 +26,6 @@ import com.jayway.jsonpath.spi.json.JacksonJsonProvider;
 import com.jayway.jsonpath.spi.mapper.JacksonMappingProvider;
 import io.druid.common.utils.JodaUtils;
 import io.druid.java.util.common.Pair;
-import io.druid.java.util.common.StringUtils;
 import io.druid.java.util.common.logger.Logger;
 import io.druid.query.lookup.namespace.CacheGenerator;
 import io.druid.query.lookup.namespace.JdbcExtractionNamespace;
