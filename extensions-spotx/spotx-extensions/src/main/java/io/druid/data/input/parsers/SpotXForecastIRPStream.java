@@ -100,10 +100,6 @@ public class SpotXForecastIRPStream extends AvroStreamInputRowParser
       output = processor.process(output);
     }
 
-    output.getEvent().put("PETER","fuck it");
-
-    output.getDimensions().add("DIM_PETER");
-
     return output;
   }
 
